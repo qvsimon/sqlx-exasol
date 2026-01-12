@@ -22,6 +22,7 @@ pub struct ImportBuilder<'a> {
     num_writers: usize,
     buffer_size: usize,
     compression: Option<bool>,
+    dest_schema: &'a str,
     dest_table: &'a str,
     columns: Option<&'a [&'a str]>,
     comment: Option<&'a str>,
@@ -36,11 +37,12 @@ pub struct ImportBuilder<'a> {
 
 impl<'a> ImportBuilder<'a> {
     #[must_use]
-    pub fn new(dest_table: &'a str) -> Self {
+    pub fn new(dest_schema: &'a str, dest_table: &'a str) -> Self {
         Self {
             num_writers: 0,
             buffer_size: Self::DEFAULT_BUF_SIZE,
             compression: None,
+            dest_schema,
             dest_table,
             columns: None,
             comment: None,
@@ -167,6 +169,8 @@ impl EtlJob for ImportBuilder<'_> {
         }
 
         query.push_str("IMPORT INTO ");
+        Self::push_ident(&mut query, self.dest_schema);
+        query.push('.');
         Self::push_ident(&mut query, self.dest_table);
         query.push(' ');
 
